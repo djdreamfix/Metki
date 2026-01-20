@@ -73,8 +73,10 @@ export default function MapView() {
   // Create a custom div icon for each marker, with a placeholder element for React rendering
   const createDivIcon = (id) =>
     L.divIcon({
-      html: `<div id="marker-${id}"></div>`,
-      className: "",
+    html: `<div id="marker-${id}"></div>`,
+    className: "",
+    iconSize: [40, 40],   // задаємо розмір контейнера, щоб він не був 0×0
+    iconAnchor: [20, 20], // точка прив’язки іконки (по центру)
     });
 
   return (
