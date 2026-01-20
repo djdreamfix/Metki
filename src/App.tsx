@@ -1,36 +1,50 @@
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { io } from "socket.io-client";
+import { useEffect, useState } from 'react';
+import L from 'leaflet';
 
-const socket = io();
+type Marker = {
+  id: string;
+  lat: number;
+  lng: number;
+  color: string;
+  created: number;
+};
 
 export default function App() {
-  const [markers, setMarkers] = useState<any[]>([]);
+  const [markers, setMarkers] = useState<Marker[]>([]);
+
   useEffect(() => {
-    socket.on("markers:init", setMarkers);
-    socket.on("marker:created", m => setMarkers(p => [...p, m]));
-    socket.on("markers:update", setMarkers);
-    return () => socket.off();
+    const map = L.map('map').setView([50.45, 30.52], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    map.on('click', (e: any) => {
+      const color = ['blue', 'green', 'purple'][Math.floor(Math.random() * 3)];
+      const marker = {
+        id: crypto.randomUUID(),
+        lat: e.latlng.lat,
+        lng: e.latlng.lng,
+        color,
+        created: Date.now()
+      };
+
+      setMarkers(m => [...m, marker]);
+
+      const circle = L.circleMarker(e.latlng, {
+        radius: 18,
+        color,
+        fillColor: color,
+        fillOpacity: 0.8
+      }).addTo(map);
+
+      setTimeout(() => {
+        map.removeLayer(circle);
+      }, 30 * 60 * 1000);
+    });
+
+    return () => map.remove();
   }, []);
 
-  const add = (e:any) => {
-    socket.emit("marker:create", {
-      id: crypto.randomUUID(),
-      lat: e.latlng.lat,
-      lng: e.latlng.lng,
-      createdAt: Date.now(),
-      color: "blue"
-    });
-  };
-
-  return (
-    <MapContainer center={[50.45,30.52]} zoom={13} style={{height:"100vh"}}
-      whenCreated={map => map.on("click", add)}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
-      {markers.map(m=>(
-        <CircleMarker key={m.id} center={[m.lat,m.lng]} radius={15}/>
-      ))}
-    </MapContainer>
-  );
+  return <div id="map" style={{ height: '100vh', width: '100vw' }} />;
 }
