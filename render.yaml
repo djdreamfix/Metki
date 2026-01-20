@@ -1,0 +1,23 @@
+# Exported from Render on 2026-01-20T21:52:43Z
+version: "1"
+projects:
+- name: My project
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: Metki
+      runtime: node
+      repo: https://github.com/djdreamfix/Metki
+      plan: starter
+      envVars:
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: NODE_VERSION
+        sync: false
+      region: frankfurt
+      buildCommand: npm install && npm run build
+      startCommand: npm start
+      autoDeployTrigger: commit
